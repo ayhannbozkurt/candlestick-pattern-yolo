@@ -15,6 +15,17 @@ cd yolo-pattern
 pip install -r requirements.txt
 ```
 
+3. Set up environment variables:
+```bash
+# Linux/Mac
+export HUGGINGFACE_TOKEN="your_huggingface_token"
+
+# Windows
+set HUGGINGFACE_TOKEN=your_huggingface_token
+```
+
+You can get your Hugging Face token from your [Hugging Face account settings](https://huggingface.co/settings/tokens).
+
 ## Usage
 
 ### Image Processing
