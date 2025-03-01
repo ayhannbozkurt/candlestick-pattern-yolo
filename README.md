@@ -1,13 +1,21 @@
-# YOLO Stock Market Pattern Detection
+# Stock Market Pattern Detection with YOLOv8
 
-This project uses YOLOv8 for detecting patterns in stock market candlestick charts. The model is trained to recognize various patterns including 'Head and shoulders bottom,' 'Head and shoulders top,' 'M_Head,' 'StockLine,' 'Triangle,' and 'W_Bottom.'
+This project uses YOLOv8 for detecting patterns in stock market candlestick charts. The model can identify various technical analysis patterns including 'Head and shoulders bottom,' 'Head and shoulders top,' 'M_Head,' 'StockLine,' 'Triangle,' and 'W_Bottom.'
+
+## Features
+
+- Real-time pattern detection in both images and videos
+- Easy integration with existing applications
+- Configurable confidence thresholds
+- Automatic model downloading from Hugging Face
+- Visualization of detected patterns
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd yolo-pattern
+git clone https://github.com/ayhannbozkurt/candlestick-pattern-yolo
+cd candlestick-pattern-yolo
 ```
 
 2. Install dependencies:
@@ -15,18 +23,42 @@ cd yolo-pattern
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
-```bash
-# Linux/Mac
-export HUGGINGFACE_TOKEN="your_huggingface_token"
+3. Set up your Hugging Face token:
 
-# Windows
-set HUGGINGFACE_TOKEN=your_huggingface_token
+Create a `.env` file in the project root directory with the following content:
+```
+HUGGINGFACE_TOKEN=your_huggingface_token
 ```
 
-You can get your Hugging Face token from your [Hugging Face account settings](https://huggingface.co/settings/tokens).
+You can obtain your Hugging Face token from [Hugging Face account settings](https://huggingface.co/settings/tokens).
+
+## Project Structure
+
+```
+stock-pattern-detection/
+├── app.py                  # Main application entry point
+├── src/
+│   ├── model/
+│   │   ├── model_loader.py        # Handles model downloading and loading
+│   │   └── pattern_detector.py    # Detects patterns in images
+│   ├── inference/
+│   │   ├── video_processor.py     # Processes videos
+│   │   ├── video_inference.py     # Video inference implementation
+│   │   └── image_inference.py     # Image inference implementation
+│   └── utils/
+│       └── logger.py              # Logging utilities
+└── requirements.txt        # Project dependencies
+```
 
 ## Usage
+
+### Quick Start
+
+Run the main application to process a video file:
+
+```bash
+python app.py
+```
 
 ### Image Processing
 
@@ -46,6 +78,8 @@ result_image = detector.draw_detections(image, detections)
 
 # Save or display the result
 cv2.imwrite("output.jpg", result_image)
+cv2.imshow("Detected Patterns", result_image)
+cv2.waitKey(0)
 
 # Print detected patterns
 for det in detections:
@@ -65,13 +99,11 @@ processor = VideoProcessor()
 video_path = "input.mp4"
 output_path = "output.mp4"
 
-# Method 1: Process and save video without display
-for frame in processor.process_video(video_path, output_path):
-    pass  # Video is automatically saved to output_path
+print(f"Processing video: {video_path}")
+print("Press 'q' to quit")
 
-# Method 2: Process, display and save video
-print("Processing video... Press 'q' to quit")
-for frame in processor.process_video(video_path, output_path):
+# Process and display video frames
+for frame in processor.process_video(video_path, output_path, conf_threshold=0.3):
     # Display the frame
     cv2.imshow('Stock Pattern Detection', frame)
     
@@ -80,9 +112,10 @@ for frame in processor.process_video(video_path, output_path):
         break
 
 cv2.destroyAllWindows()
+print(f"Output saved to: {output_path}")
 ```
 
-### Custom Model Configuration
+### Advanced Usage - Custom Model Configuration
 
 You can customize the model configuration by passing parameters:
 
@@ -94,53 +127,95 @@ from src.inference.video_processor import VideoProcessor
 # Initialize with custom model ID and filename
 model_loader = ModelLoader(
     model_id="foduucom/stockmarket-pattern-detection-yolov8",
-    model_filename="model.pt"
+    model_filename="best.pt"
 )
 
-# For image processing
+# Create detector with custom model loader
 detector = PatternDetector(model_loader=model_loader)
 
-# For video processing
-processor = VideoProcessor(pattern_detector=PatternDetector(model_loader=model_loader))
+# Create video processor with custom detector
+processor = VideoProcessor(pattern_detector=detector)
 
 # Process with custom confidence threshold
-detections = detector.detect_patterns(image, conf_threshold=0.3)
+detections = detector.detect_patterns(image, conf_threshold=0.4)
 ```
 
-## Model Information
+### Advanced Video Processing Options
 
-The model is hosted on Hugging Face Hub and will be automatically downloaded when you first use it. Make sure you have an internet connection for the initial download.
+The `VideoInference` class provides additional options for video processing:
 
-## Supported Patterns
+```python
+from src.inference.video_inference import VideoInference
 
-The model can detect the following patterns:
-- Head and shoulders bottom
-- Head and shoulders top
-- M_Head
-- StockLine
-- Triangle
-- W_Bottom
+# Initialize video inference
+video_inf = VideoInference()
 
-## Requirements
+# Process video with custom parameters
+output_path = video_inf.process_video(
+    video_path="input.mp4",
+    output_path="output.mp4",
+    frame_skip=5,              # Process every 5th frame
+    conf_threshold=0.3,        # Confidence threshold
+    iou_threshold=0.45,        # IOU threshold for NMS
+    detection_duration=75      # How long to display detections (in frames)
+)
+```
 
-See `requirements.txt` for a full list of dependencies.
+## Detection Output Format
 
-## Output Format
+The `detect_patterns` method returns a list of detections with the following format:
 
-### Image Detection Output
 ```python
 [
     {
-        "pattern": "Pattern Name",
-        "confidence": 0.95,  # Confidence score between 0 and 1
-        "bbox": [x1, y1, x2, y2]  # Bounding box coordinates
+        "pattern": "Head and shoulders top",
+        "confidence": 0.95,         # Confidence score between 0 and 1
+        "bbox": [x1, y1, x2, y2]    # Bounding box coordinates (top-left, bottom-right)
     },
     # ... more detections
 ]
 ```
 
-## Notes
-- For video processing, the output video will be saved in MP4 format
-- Press 'q' to quit video display
-- Default confidence threshold is 0.3
-- The model automatically downloads from Hugging Face Hub on first use # candlestick-pattern-yolo
+## Supported Patterns
+
+The model can detect the following candlestick patterns:
+
+- Head and shoulders bottom (ID: 0)
+- Head and shoulders top (ID: 1)
+- M_Head (ID: 2)
+- StockLine (ID: 3)
+- Triangle (ID: 4)
+- W_Bottom (ID: 5)
+
+## Requirements
+
+- Python 3.8+
+- OpenCV
+- PyTorch
+- Ultralytics YOLOv8
+- Hugging Face Hub
+- Other dependencies listed in `requirements.txt`
+
+## Troubleshooting
+
+### Model Loading Issues
+
+If you encounter issues loading the model, check:
+
+1. Your Hugging Face token is valid and correctly set
+2. You have internet connectivity for the initial model download
+3. You have sufficient disk space for the model
+
+### Memory Issues
+
+For processing high-resolution videos, you may need to adjust the frame size:
+
+```python
+# Resize frame to reduce memory usage
+frame = cv2.resize(frame, (640, 480))
+```
+
+## Acknowledgments
+
+- Model trained on [foduucom/stockmarket-pattern-detection-yolov8](https://huggingface.co/foduucom/stockmarket-pattern-detection-yolov8)
+- Built with YOLOv8 by Ultralytics
