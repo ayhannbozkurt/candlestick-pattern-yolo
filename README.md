@@ -2,6 +2,8 @@
 
 This project uses YOLOv8 for detecting patterns in stock market candlestick charts. The model can identify various technical analysis patterns including 'Head and shoulders bottom,' 'Head and shoulders top,' 'M_Head,' 'StockLine,' 'Triangle,' and 'W_Bottom.'
 
+https://github.com/user-attachments/assets/9c4ace10-a8c8-4c67-b5d4-2675a6eac50e
+
 ## Features
 
 - Real-time pattern detection in both images and videos
